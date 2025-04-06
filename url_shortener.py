@@ -2,8 +2,18 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import random
 import string
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+# Allow CORS for all origins
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Fake db to store the urls
 url_db = {}

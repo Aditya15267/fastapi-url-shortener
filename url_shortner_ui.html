@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FastAPI URL Shortener</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-6 rounded-2xl shadow-lg w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-4 text-center">🔗 FastAPI URL Shortener</h1>
+
+        <label for="urlInput" class="block mb-2 font-medium">Enter Long URL</label>
+        <input
+            id="urlInput"
+            type="url"
+            placeholder="https://example.com/very/long/url"
+            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 mb-4"
+            required
+        />
+
+        <button
+            onclick="shortenUrl()"
+            class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+        >
+            Shorten URL
+        </button>
+
+        <div id="result" class="mt-4 hidden p-3 bg-green-100 text-green-800 rounded-lg"></div>
+        <div id="error" class="mt-4 hidden p-3 bg-red-100 text-red-800 rounded-lg"></div>
+
+        <hr class="my-6" />
+
+        <label for="expandInput" class="block mb-2 font-medium">Enter Short Code to Expand</label>
+        <input
+            id="expandInput"
+            type="text"
+            placeholder="iVHzVY"
+            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 mb-4"
+        />
+
+        <button
+            onclick="expandUrl()"
+            class="w-full bg-gray-700 text-white py-2 rounded-lg hover:bg-gray-800 transition"
+        >
+            Expand URL
+        </button>
+
+        <div id="expandedUrl" class="mt-4 hidden p-3 bg-blue-100 text-blue-800 rounded-lg"></div>
+    </div>
+
+    <script>
+        async function shortenUrl() {
+            const input = document.getElementById("urlInput").value.trim();
+            const resultDiv = document.getElementById("result");
+            const errorDiv = document.getElementById("error");
+            resultDiv.classList.add("hidden");
+            errorDiv.classList.add("hidden");
+
+            if (!input) {
+                errorDiv.textContent = "Please enter a valid URL.";
+                errorDiv.classList.remove("hidden");
+                return;
+            }
+
+            try {
+                const res = await fetch("http://localhost:8000/shorten_url", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ long_url: input }),
+                });
+
+                const data = await res.json();
+                if (data.short_url) {
+                    resultDiv.innerHTML = `<strong>Short URL:</strong> <a href="${data.short_url}" class="underline" target="_blank">${data.short_url}</a>`;
+                    resultDiv.classList.remove("hidden");
+                } else {
+                    throw new Error("Invalid response");
+                }
+            } catch (err) {
+                errorDiv.textContent = "Something went wrong. Please try again.";
+                errorDiv.classList.remove("hidden");
+            }
+        }
+
+        async function expandUrl() {
+            const code = document.getElementById("expandInput").value.trim();
+            const expandedDiv = document.getElementById("expandedUrl");
+            const errorDiv = document.getElementById("error");
+            expandedDiv.classList.add("hidden");
+            errorDiv.classList.add("hidden");
+
+            if (!code) {
+                errorDiv.textContent = "Please enter a short code.";
+                errorDiv.classList.remove("hidden");
+                return;
+            }
+
+            try {
+                const res = await fetch(`http://localhost:8000/expand/${code}`);
+                const data = await res.json();
+                
+                if (data.long_url) {
+                    expandedDiv.innerHTML = `<strong>Original URL:</strong> <a href="${data.long_url}" class="underline" target="_blank">${data.long_url}</a>`;
+                    expandedDiv.classList.remove("hidden");
+                } else {
+                    errorDiv.textContent = "Short code not found.";
+                    errorDiv.classList.remove("hidden");
+                }
+            } catch (err) {
+                errorDiv.textContent = "Something went wrong. Please try again.";
+                errorDiv.classList.remove("hidden");
+            }
+        }
+    </script>
+</body>
+</html>
