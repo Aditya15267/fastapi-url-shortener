@@ -41,7 +41,7 @@ Install the required dependency:
 
 ### Request:
 
-```json
+```sh
 POST /shorten_url
 {
    "long_url": "https://www.example.com/long/url/path"
